@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { createApiKey, getApiKeys, updateApiKey, deleteApiKey } from '@/lib/supabase';
 
 export default function Dashboard() {
   const [mounted, setMounted] = useState(false);
@@ -13,7 +14,6 @@ export default function Dashboard() {
   });
   const [newKey, setNewKey] = useState({
     name: '',
-    usage: '0',
     limit: '1000'
   });
   const [isLoading, setIsLoading] = useState(true);
@@ -24,50 +24,22 @@ export default function Dashboard() {
     setMounted(true);
   }, []);
 
-  // Load API keys from localStorage on component mount
+  // Load API keys from Supabase on component mount
   useEffect(() => {
     if (mounted) {
-      try {
-        const savedKeys = localStorage.getItem('apiKeys');
-        if (savedKeys) {
-          setApiKeys(JSON.parse(savedKeys));
-        } else {
-          // Initialize with default key if no keys exist
-          const defaultKey = {
-            id: 'default',
-            name: 'default',
-            key: generateApiKey(),
-            usage: '24',
-            createdAt: new Date().toISOString()
-          };
-          setApiKeys([defaultKey]);
-          localStorage.setItem('apiKeys', JSON.stringify([defaultKey]));
-        }
-      } catch (error) {
-        console.error('Error loading API keys:', error);
-      } finally {
-        setIsLoading(false);
-      }
+      loadApiKeys();
     }
   }, [mounted]);
 
-  // Save API keys to localStorage whenever they change
-  useEffect(() => {
-    if (mounted && !isLoading) {
-      try {
-        localStorage.setItem('apiKeys', JSON.stringify(apiKeys));
-      } catch (error) {
-        console.error('Error saving API keys:', error);
-      }
+  const loadApiKeys = async () => {
+    try {
+      const keys = await getApiKeys();
+      setApiKeys(keys);
+    } catch (error) {
+      console.error('Error loading API keys:', error);
+    } finally {
+      setIsLoading(false);
     }
-  }, [apiKeys, isLoading, mounted]);
-
-  const generateApiKey = () => {
-    const randomString = Array(32)
-      .fill(0)
-      .map(() => Math.random().toString(36).charAt(2))
-      .join('');
-    return `tvly-${randomString}`;
   };
 
   const handleInputChange = (e) => {
@@ -75,28 +47,32 @@ export default function Dashboard() {
     setNewKey(prev => ({ ...prev, [name]: value }));
   };
 
-  const addApiKey = () => {
+  const addApiKey = async () => {
     if (newKey.name.trim()) {
-      const newApiKey = {
-        id: Date.now(),
-        ...newKey,
-        key: generateApiKey(),
-        usage: '0',
-        createdAt: new Date().toISOString()
-      };
-      setApiKeys([...apiKeys, newApiKey]);
-      setNewKey({
-        name: '',
-        usage: '0',
-        limit: '1000'
-      });
-      setShowAddForm(false);
+      try {
+        const newApiKey = await createApiKey(newKey);
+        setApiKeys([newApiKey, ...apiKeys]);
+        setNewKey({
+          name: '',
+          limit: '1000'
+        });
+        setShowAddForm(false);
+      } catch (error) {
+        console.error('Error creating API key:', error);
+        alert('Failed to create API key');
+      }
     }
   };
 
-  const deleteApiKey = (id) => {
+  const handleDeleteApiKey = async (id) => {
     if (window.confirm('Are you sure you want to delete this API key?')) {
-      setApiKeys(apiKeys.filter(key => key.id !== id));
+      try {
+        await deleteApiKey(id);
+        setApiKeys(apiKeys.filter(key => key.id !== id));
+      } catch (error) {
+        console.error('Error deleting API key:', error);
+        alert('Failed to delete API key');
+      }
     }
   };
 
@@ -139,15 +115,17 @@ export default function Dashboard() {
     }));
   };
 
-  const saveEdit = (keyId) => {
-    setApiKeys(apiKeys.map(key => 
-      key.id === keyId ? {
-        ...key,
-        name: editForm.name,
-        limit: editForm.limit
-      } : key
-    ));
-    setEditingKey(null);
+  const saveEdit = async (keyId) => {
+    try {
+      const updatedKey = await updateApiKey(keyId, editForm);
+      setApiKeys(apiKeys.map(key => 
+        key.id === keyId ? updatedKey : key
+      ));
+      setEditingKey(null);
+    } catch (error) {
+      console.error('Error updating API key:', error);
+      alert('Failed to update API key');
+    }
   };
 
   const cancelEdit = () => {
@@ -332,7 +310,7 @@ export default function Dashboard() {
                           </button>
                         )}
                         <button
-                          onClick={() => deleteApiKey(key.id)}
+                          onClick={() => handleDeleteApiKey(key.id)}
                           className="text-gray-400 hover:text-gray-600"
                           title="Delete"
                         >
