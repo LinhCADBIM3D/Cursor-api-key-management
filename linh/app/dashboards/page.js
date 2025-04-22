@@ -5,12 +5,17 @@ import { useState, useEffect } from 'react';
 export default function Dashboard() {
   const [mounted, setMounted] = useState(false);
   const [apiKeys, setApiKeys] = useState([]);
+  const [visibleKeys, setVisibleKeys] = useState(new Set());
+  const [editingKey, setEditingKey] = useState(null);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    limit: '',
+  });
   const [newKey, setNewKey] = useState({
     name: '',
     usage: '0',
     limit: '1000'
   });
-  const [editingKey, setEditingKey] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
 
@@ -58,7 +63,11 @@ export default function Dashboard() {
   }, [apiKeys, isLoading, mounted]);
 
   const generateApiKey = () => {
-    return `tvly-${Array(32).fill(0).map(() => '*').join('')}`;
+    const randomString = Array(32)
+      .fill(0)
+      .map(() => Math.random().toString(36).charAt(2))
+      .join('');
+    return `tvly-${randomString}`;
   };
 
   const handleInputChange = (e) => {
@@ -89,6 +98,64 @@ export default function Dashboard() {
     if (window.confirm('Are you sure you want to delete this API key?')) {
       setApiKeys(apiKeys.filter(key => key.id !== id));
     }
+  };
+
+  const toggleKeyVisibility = (keyId) => {
+    setVisibleKeys(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(keyId)) {
+        newSet.delete(keyId);
+      } else {
+        newSet.add(keyId);
+      }
+      return newSet;
+    });
+  };
+
+  const maskApiKey = (key) => {
+    if (!key) return '••••••••••';
+    
+    const parts = key.split('-');
+    if (parts.length < 2) return key;
+
+    const prefix = parts[0];
+    const rest = parts.slice(1).join('-');
+    return `${prefix}-${'•'.repeat(Math.min(rest.length, 32))}`;
+  };
+
+  const startEditing = (key) => {
+    setEditingKey(key.id);
+    setEditForm({
+      name: key.name,
+      limit: key.limit || '1000',
+    });
+  };
+
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    setEditForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const saveEdit = (keyId) => {
+    setApiKeys(apiKeys.map(key => 
+      key.id === keyId ? {
+        ...key,
+        name: editForm.name,
+        limit: editForm.limit
+      } : key
+    ));
+    setEditingKey(null);
+  };
+
+  const cancelEdit = () => {
+    setEditingKey(null);
+    setEditForm({
+      name: '',
+      limit: '',
+    });
   };
 
   // Don't render anything until mounted
@@ -171,28 +238,60 @@ export default function Dashboard() {
                 {apiKeys.map((key) => (
                   <tr key={key.id} className="border-b border-gray-200 last:border-b-0">
                     <td className="py-4 px-6 text-sm font-medium text-gray-900">
-                      {key.name}
+                      {editingKey === key.id ? (
+                        <input
+                          type="text"
+                          name="name"
+                          value={editForm.name}
+                          onChange={handleEditChange}
+                          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                          placeholder="Enter key name"
+                        />
+                      ) : (
+                        key.name
+                      )}
                     </td>
                     <td className="py-4 px-6 text-sm text-gray-500">
-                      {key.usage}
+                      {editingKey === key.id ? (
+                        <input
+                          type="number"
+                          name="limit"
+                          value={editForm.limit}
+                          onChange={handleEditChange}
+                          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                          placeholder="Enter limit"
+                        />
+                      ) : (
+                        key.usage
+                      )}
                     </td>
                     <td className="py-4 px-6 text-sm text-gray-500 font-mono">
-                      {key.key}
+                      {visibleKeys.has(key.id) ? key.key : maskApiKey(key.key)}
                     </td>
                     <td className="py-4 px-6">
                       <div className="flex justify-end gap-3">
                         <button
-                          onClick={() => {/* View key */}}
-                          className="text-gray-400 hover:text-gray-600"
-                          title="View"
+                          onClick={() => toggleKeyVisibility(key.id)}
+                          className={`text-gray-400 hover:text-gray-600 transition-colors ${
+                            visibleKeys.has(key.id) ? 'text-blue-500 hover:text-blue-600' : ''
+                          }`}
+                          title={visibleKeys.has(key.id) ? "Hide API Key" : "Show API Key"}
                         >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                          </svg>
+                          {visibleKeys.has(key.id) ? (
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                          ) : (
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                            </svg>
+                          )}
                         </button>
                         <button
-                          onClick={() => {/* Copy key */}}
+                          onClick={() => {
+                            navigator.clipboard.writeText(key.key);
+                          }}
                           className="text-gray-400 hover:text-gray-600"
                           title="Copy"
                         >
@@ -200,15 +299,38 @@ export default function Dashboard() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
                           </svg>
                         </button>
-                        <button
-                          onClick={() => {/* Edit key */}}
-                          className="text-gray-400 hover:text-gray-600"
-                          title="Edit"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                          </svg>
-                        </button>
+                        {editingKey === key.id ? (
+                          <>
+                            <button
+                              onClick={() => saveEdit(key.id)}
+                              className="text-green-500 hover:text-green-600"
+                              title="Save"
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={cancelEdit}
+                              className="text-gray-400 hover:text-gray-600"
+                              title="Cancel"
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            onClick={() => startEditing(key)}
+                            className="text-gray-400 hover:text-gray-600"
+                            title="Edit"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+                        )}
                         <button
                           onClick={() => deleteApiKey(key.id)}
                           className="text-gray-400 hover:text-gray-600"
