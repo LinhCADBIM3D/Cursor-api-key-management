@@ -1,7 +1,6 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { NextAuthProvider } from "./providers";
-import Sidebar from "./components/Sidebar";
+import ClientLayout from "./components/ClientLayout";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -14,14 +13,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={inter.className}>
-        <NextAuthProvider>
-          <div className="flex">
-            <Sidebar />
-            <main className="flex-1 min-h-screen bg-gray-50">
-              {children}
-            </main>
-          </div>
-        </NextAuthProvider>
+        <ClientLayout>
+          {children}
+        </ClientLayout>
       </body>
     </html>
   );
