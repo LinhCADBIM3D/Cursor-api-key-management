@@ -6,13 +6,15 @@ import Sidebar from "./Sidebar";
 
 export default function ClientLayout({ children }) {
   const pathname = usePathname();
-  const isHomePage = pathname === '/';
+  const shouldHideSidebar = pathname === '/' || 
+                           pathname === '/login' || 
+                           pathname === '/api/auth/signout';
 
   return (
     <SessionProvider>
       <div className="flex">
-        {!isHomePage && <Sidebar />}
-        <div className={`flex-1 ${!isHomePage ? 'ml-64' : ''}`}>
+        {!shouldHideSidebar && <Sidebar />}
+        <div className={`flex-1 ${!shouldHideSidebar ? 'ml-64' : ''}`}>
           {children}
         </div>
       </div>
