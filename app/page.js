@@ -1,70 +1,141 @@
 "use client";
 
 import { signIn } from "next-auth/react";
-import { useState, useEffect } from "react";
+import Image from 'next/image';
+import Link from 'next/link';
 
 export default function Home() {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-gray-900 via-blue-900 to-blue-950">
-      {/* Animated background elements */}
-      <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-20"></div>
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-yellow-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
-        <div className="absolute top-40 -left-20 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      {/* Navigation */}
+      <nav className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-sm z-50 border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            {/* Logo and Name */}
+            <div className="flex items-center">
+              <Image 
+                src="/github-mark.svg"
+                alt="Logo"
+                width={32}
+                height={32}
+                className="w-8 h-8"
+              />
+              <span className="ml-2 text-xl font-semibold text-gray-900">Linh Github Analyzer</span>
+            </div>
 
-      {/* Content */}
-      <div className="relative min-h-screen flex flex-col items-center justify-center px-4">
-        <div className={`text-center transition-all duration-1000 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-          <h1 className="text-5xl md:text-6xl font-bold text-white mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-200 to-cyan-200">
-            API Key Management
-          </h1>
-          <p className="text-lg md:text-xl text-blue-200 mb-8 max-w-2xl mx-auto">
-            Secure, simple, and powerful way to manage your API keys. Get started with just one click.
-          </p>
-          
-          <button
-            onClick={() => signIn("google")}
-            className="group relative inline-flex items-center justify-center px-8 py-4 text-lg font-medium text-white bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/30"
-          >
-            {/* Button background animation */}
-            <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-cyan-400 to-blue-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            
-            {/* Google icon */}
-            <svg className="w-6 h-6 mr-3 relative" viewBox="0 0 24 24">
-              <path
-                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                fill="#fff"
+            {/* Navigation Links */}
+            <div className="hidden md:flex items-center space-x-8">
+              <Link href="#features" className="text-gray-600 hover:text-gray-900">Features</Link>
+              <Link href="#how-it-works" className="text-gray-600 hover:text-gray-900">How It Works</Link>
+              <Link href="#pricing" className="text-gray-600 hover:text-gray-900">Pricing</Link>
+              <Link href="#testimonials" className="text-gray-600 hover:text-gray-900">Testimonials</Link>
+              <Link href="/dashboards" className="text-white bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg">
+                Dashboard
+              </Link>
+            </div>
+
+            {/* Sign in Button */}
+            <button
+              onClick={() => signIn("google", { callbackUrl: "/dashboards" })}
+              className="group relative inline-flex items-center gap-2 px-6 py-3 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 shadow-sm"
+            >
+              <Image
+                src="/google.svg"
+                alt="Google"
+                width={20}
+                height={20}
+                className="w-5 h-5"
               />
-              <path
-                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                fill="#fff"
-              />
-              <path
-                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                fill="#fff"
-              />
-              <path
-                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                fill="#fff"
-              />
-            </svg>
-            <span className="relative">Sign in with Google</span>
-          </button>
+              <span>Sign in with Google</span>
+            </button>
+          </div>
         </div>
+      </nav>
 
-        {/* Animated circles in bottom */}
-        <div className="absolute bottom-10 flex space-x-3 animate-bounce">
-          <div className="w-3 h-3 rounded-full bg-blue-400 opacity-75"></div>
-          <div className="w-3 h-3 rounded-full bg-blue-400 opacity-75 animate-bounce animation-delay-200"></div>
-          <div className="w-3 h-3 rounded-full bg-blue-400 opacity-75 animate-bounce animation-delay-500"></div>
+      {/* Hero Section */}
+      <div className="pt-32 pb-16 sm:pt-40 sm:pb-20 lg:pt-48 lg:pb-28">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="lg:grid lg:grid-cols-12 lg:gap-8">
+            {/* Left Content */}
+            <div className="sm:text-center md:max-w-2xl md:mx-auto lg:col-span-6 lg:text-left">
+              <h1 className="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl lg:text-5xl xl:text-6xl">
+                Unlock the Power of GitHub Repositories
+              </h1>
+              <p className="mt-3 text-base text-gray-500 sm:mt-5 sm:text-xl lg:text-lg xl:text-xl">
+                Get valuable insights, summaries, stats, and important updates on any open source GitHub repository with Khanh Github Analyzer.
+              </p>
+              <div className="mt-8 sm:mt-12">
+                <div className="flex flex-wrap gap-4">
+                  <button className="flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-green-600 hover:bg-green-700 md:py-4 md:text-lg md:px-10">
+                    Get Started for Free
+                  </button>
+                  <button className="flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-lg text-gray-700 bg-gray-100 hover:bg-gray-200 md:py-4 md:text-lg md:px-10">
+                    See How It Works
+                  </button>
+                </div>
+                <div className="mt-6 flex items-center gap-6 text-sm text-gray-500">
+                  <div className="flex items-center">
+                    <svg className="flex-shrink-0 h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.715-5.349L11 6.477V16a1 1 0 11-2 0V6.477L6.237 7.582l1.715 5.349a1 1 0 01-.285 1.05A3.989 3.989 0 013 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.616a1 1 0 01.894-1.79l1.599.8L7 4.323V3a1 1 0 011-1h2z" clipRule="evenodd" />
+                    </svg>
+                    <span className="ml-2">Track Stars</span>
+                  </div>
+                  <div className="flex items-center">
+                    <svg className="flex-shrink-0 h-5 w-5 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
+                    </svg>
+                    <span className="ml-2">Monitor PRs</span>
+                  </div>
+                  <div className="flex items-center">
+                    <svg className="flex-shrink-0 h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+                    </svg>
+                    <span className="ml-2">Version Updates</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Demo Section */}
+            <div className="mt-12 relative sm:max-w-lg sm:mx-auto lg:mt-0 lg:max-w-none lg:mx-0 lg:col-span-6 lg:flex lg:items-center">
+              <div className="relative mx-auto w-full rounded-lg shadow-lg lg:max-w-md">
+                <div className="relative block w-full bg-white rounded-lg overflow-hidden">
+                  <div className="h-12 bg-gray-100 flex items-center px-4 border-b border-gray-200">
+                    <div className="flex space-x-2">
+                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                      <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                    <div className="ml-4 text-sm text-gray-600">github.com/vercel/next.js</div>
+                  </div>
+                  <div className="p-6">
+                    <h3 className="text-lg font-medium text-gray-900">Repository Summary</h3>
+                    <p className="mt-2 text-sm text-gray-500">
+                      Next.js is a React framework for production - it makes building fullstack React apps and sites a breeze and ships with built-in SSR, SSG, and more.
+                    </p>
+                    <div className="mt-6 grid grid-cols-3 gap-4">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">98.5k</div>
+                        <div className="text-sm text-gray-500">Stars</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-purple-600">542</div>
+                        <div className="text-sm text-gray-500">Open PRs</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-blue-600">v14.0.3</div>
+                        <div className="text-sm text-gray-500">Latest</div>
+                      </div>
+                    </div>
+                    <div className="mt-6">
+                      <h4 className="text-sm font-medium text-gray-900">Latest Important PR</h4>
+                      <div className="mt-2 text-sm text-gray-500">#49876: Add support for Server Actions in App Router</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
